@@ -1,4 +1,4 @@
-import { ImpersonationStatus, UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { ApiError } from "@/lib/api/response";
@@ -45,7 +45,7 @@ export async function getServerSession(): Promise<SessionPayload | null> {
 
 export function requireAuth(
   request: NextRequest,
-  options?: { roles?: UserRole[]; scope?: "tenant" | "platform" }
+  options?: { roles?: string[]; scope?: "tenant" | "platform" }
 ): SessionPayload {
   const session = getSessionFromRequest(request);
   if (!session) {
@@ -65,7 +65,7 @@ export function requireAuth(
 }
 
 export function requirePlatformAuth(request: NextRequest): SessionPayload {
-  return requireAuth(request, { roles: [UserRole.SUPER_ADMIN], scope: "platform" });
+  return requireAuth(request, { roles: ["SUPER_ADMIN"], scope: "platform" });
 }
 
 export async function assertImpersonationActive(session: SessionPayload) {
@@ -81,14 +81,14 @@ export async function assertImpersonationActive(session: SessionPayload) {
     throw new ApiError(401, "Invalid impersonation session");
   }
 
-  if (record.status !== ImpersonationStatus.ACTIVE) {
+  if (record.status !== "ACTIVE") {
     throw new ApiError(401, "Impersonation session is no longer active");
   }
 
   if (record.expires_at < new Date()) {
     await prisma.impersonationSession.update({
       where: { id: record.id },
-      data: { status: ImpersonationStatus.EXPIRED, ended_at: new Date() },
+      data: { status: "EXPIRED", ended_at: new Date() },
     });
     throw new ApiError(401, "Impersonation session expired");
   }

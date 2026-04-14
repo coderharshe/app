@@ -1,4 +1,4 @@
-import { UserRole, TenantStatus } from "@prisma/client";
+import { } from "@prisma/client";
 import { z } from "zod";
 
 export const slugSchema = z
@@ -12,19 +12,19 @@ export const registerSchema = z
     name: z.string().min(2).max(80),
     email: z.string().email(),
     password: z.string().min(8).max(128),
-    role: z.enum([UserRole.ADMIN, UserRole.CUSTOMER]).default(UserRole.CUSTOMER),
+    role: z.enum(["ADMIN", "CUSTOMER"]).default("CUSTOMER"),
     tenantSlug: slugSchema.optional(),
     tenantName: z.string().min(2).max(100).optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.role === UserRole.ADMIN && !value.tenantName) {
+    if (value.role === "ADMIN" && !value.tenantName) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "tenantName is required for admin registration",
       });
     }
 
-    if (value.role === UserRole.CUSTOMER && !value.tenantSlug) {
+    if (value.role === "CUSTOMER" && !value.tenantSlug) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "tenantSlug is required for customer registration",

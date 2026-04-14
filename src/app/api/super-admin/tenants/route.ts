@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { TenantStatus } from "@prisma/client";
+import { } from "@prisma/client";
 import { jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
 import { requirePlatformAuth } from "@/lib/auth/session";
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   return withApiHandler(async () => {
     const session = requirePlatformAuth(request);
     const search = request.nextUrl.searchParams.get("search")?.trim() ?? "";
-    const statusFilter = request.nextUrl.searchParams.get("status") as TenantStatus | null;
+    const statusFilter = request.nextUrl.searchParams.get("status") as string | null;
 
     const tenants = await prisma.tenant.findMany({
       where: {

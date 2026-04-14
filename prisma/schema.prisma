@@ -3,46 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  CUSTOMER
-}
-
-enum TenantStatus {
-  ACTIVE
-  SUSPENDED
-  PENDING
-}
-
-enum SessionScope {
-  PLATFORM
-  TENANT
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  CREATED
-  SUCCESS
-  FAILED
-}
-
-enum ImpersonationStatus {
-  ACTIVE
-  ENDED
-  EXPIRED
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Tenant {
@@ -51,7 +13,7 @@ model Tenant {
   name             String
   custom_domain    String?      @unique
   is_active        Boolean      @default(true)
-  status           TenantStatus @default(ACTIVE)
+  status           String       @default("ACTIVE")
   suspended_reason String?
   suspended_at     DateTime?
   suspended_by     String?
@@ -86,7 +48,7 @@ model User {
   email         String
   name          String
   password_hash String
-  role          UserRole
+  role          String    @default("CUSTOMER")
   is_active     Boolean   @default(true)
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
@@ -128,7 +90,7 @@ model Order {
   id                 String      @id @default(uuid())
   tenant_id          String
   user_id            String
-  status             OrderStatus @default(PENDING)
+  status             String      @default("PENDING")
   subtotal_in_paise  Int
   total_in_paise     Int
   currency           String      @default("INR")
@@ -175,7 +137,7 @@ model Cart {
   id         String   @id @default(uuid())
   tenant_id  String
   user_id    String
-  items_json Json
+  items_json String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -195,7 +157,7 @@ model Payment {
   provider_signature  String?
   amount_in_paise     Int
   currency            String        @default("INR")
-  status              PaymentStatus @default(CREATED)
+  status              String        @default("CREATED")
   verified_at         DateTime?
   created_at          DateTime      @default(now())
   updated_at          DateTime      @updatedAt
@@ -212,7 +174,7 @@ model ImpersonationSession {
   tenant_id           String
   tenant_admin_id     String
   reason              String
-  status              ImpersonationStatus @default(ACTIVE)
+  status              String              @default("ACTIVE")
   started_at          DateTime            @default(now())
   ended_at            DateTime?
   expires_at          DateTime
@@ -233,7 +195,7 @@ model AuditLog {
   action               String
   target_type          String
   target_id            String?
-  metadata_json        Json?
+  metadata_json        String?
   ip_address           String?
   user_agent           String?
   created_at           DateTime @default(now())

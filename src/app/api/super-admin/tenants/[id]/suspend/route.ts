@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { TenantStatus } from "@prisma/client";
+import { } from "@prisma/client";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
 import { requirePlatformAuth } from "@/lib/auth/session";
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const updated = await prisma.tenant.update({
       where: { id },
       data: {
-        status: TenantStatus.SUSPENDED,
+        status: "SUSPENDED",
         suspended_reason: reason,
         suspended_at: new Date(),
         suspended_by: session.sub,

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { ImpersonationStatus, UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
 import { authCookie, signJwt } from "@/lib/auth/jwt";
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       where: {
         id: body.tenantAdminUserId,
         tenant_id: body.tenantId,
-        role: UserRole.ADMIN,
+        role: "ADMIN",
         is_active: true,
       },
     });
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
     await prisma.impersonationSession.updateMany({
       where: {
         super_admin_id: session.sub,
-        status: ImpersonationStatus.ACTIVE,
+        status: "ACTIVE",
       },
       data: {
-        status: ImpersonationStatus.ENDED,
+        status: "ENDED",
         ended_at: new Date(),
       },
     });
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const token = signJwt({
       sub: tenantAdmin.id,
       tenantId: tenant.id,
-      role: UserRole.ADMIN,
+      role: "ADMIN",
       email: tenantAdmin.email,
       name: tenantAdmin.name,
       scope: "tenant",

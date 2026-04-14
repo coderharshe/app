@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ImpersonationStatus, UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
 import { authCookie, signJwt } from "@/lib/auth/jwt";
@@ -9,7 +9,7 @@ import { impersonationStopSchema } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
   return withApiHandler(async () => {
-    const tenantSession = requireAuth(request, { scope: "tenant", roles: [UserRole.ADMIN] });
+    const tenantSession = requireAuth(request, { scope: "tenant", roles: ["ADMIN"] });
     if (!tenantSession.actorSuperAdminId || !tenantSession.impersonationSessionId) {
       throw new ApiError(400, "No active impersonation session");
     }
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     await prisma.impersonationSession.update({
       where: { id: impersonation.id },
       data: {
-        status: ImpersonationStatus.ENDED,
+        status: "ENDED",
         ended_at: new Date(),
       },
     });
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const token = signJwt({
       sub: superAdmin.id,
       tenantId: null,
-      role: UserRole.SUPER_ADMIN,
+      role: "SUPER_ADMIN",
       email: superAdmin.email,
       name: superAdmin.name,
       scope: "platform",
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    if (!record || record.status !== ImpersonationStatus.ACTIVE || record.expires_at < new Date()) {
+    if (!record || record.status !== "ACTIVE" || record.expires_at < new Date()) {
       return jsonSuccess({ active: false });
     }
 

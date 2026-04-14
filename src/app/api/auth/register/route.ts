@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { authCookie, signJwt } from "@/lib/auth/jwt";
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(body.password, 12);
 
     const result = await prisma.$transaction(async (tx) => {
-      if (body.role === UserRole.ADMIN) {
+      if (body.role === "ADMIN") {
         const tenantSlug = body.tenantSlug ?? slugify(body.tenantName!);
 
         const existingTenant = await tx.tenant.findUnique({ where: { slug: tenantSlug } });
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
             name: body.name,
             email: body.email.toLowerCase(),
             password_hash: passwordHash,
-            role: UserRole.ADMIN,
+            role: "ADMIN",
           },
         });
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
           name: body.name,
           email: body.email.toLowerCase(),
           password_hash: passwordHash,
-          role: UserRole.CUSTOMER,
+          role: "CUSTOMER",
         },
       });
 

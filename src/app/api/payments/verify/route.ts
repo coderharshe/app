@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
@@ -11,7 +11,7 @@ import { paymentVerifySchema } from "@/lib/validators";
 export async function POST(request: NextRequest) {
   return withApiHandler(async () => {
     const tenant = await resolveTenantFromRequest(request);
-    const session = requireAuth(request, { roles: [UserRole.CUSTOMER, UserRole.ADMIN] });
+    const session = requireAuth(request, { roles: ["CUSTOMER", "ADMIN"] });
     assertTenantAccess(session, tenant.id);
     await assertImpersonationActive(session);
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       throw new ApiError(404, "Order payment record not found");
     }
 
-    if (session.role !== UserRole.ADMIN && order.user_id !== session.sub) {
+    if (session.role !== "ADMIN" && order.user_id !== session.sub) {
       throw new ApiError(403, "You cannot verify this order");
     }
 

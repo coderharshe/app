@@ -1,6 +1,6 @@
 import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
-import type { UserRole } from "@prisma/client";
+import type { } from "@prisma/client";
 import { env, isProd } from "@/lib/env";
 
 export const AUTH_COOKIE_NAME = "auth_token";
@@ -8,7 +8,7 @@ export const AUTH_COOKIE_NAME = "auth_token";
 export type SessionPayload = {
   sub: string;
   tenantId: string | null;
-  role: UserRole;
+  role: string;
   email: string;
   name: string;
   scope: "tenant" | "platform";

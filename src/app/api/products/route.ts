@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withApiHandler(async () => {
     const tenant = await resolveTenantFromRequest(request);
-    const session = requireAuth(request, { roles: [UserRole.ADMIN] });
+    const session = requireAuth(request, { roles: ["ADMIN"] });
     assertTenantAccess(session, tenant.id);
     await assertImpersonationActive(session);
 

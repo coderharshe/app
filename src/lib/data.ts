@@ -1,11 +1,11 @@
-import { TenantStatus } from "@prisma/client";
+import { } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export const getActiveTenants = unstable_cache(
   async () => {
     return prisma.tenant.findMany({
-      where: { is_active: true, status: TenantStatus.ACTIVE },
+      where: { is_active: true, status: "ACTIVE" },
       orderBy: { created_at: "desc" },
       select: {
         id: true,
@@ -24,7 +24,7 @@ export async function getTenantWithProductsBySlug(slug: string) {
     where: {
       slug,
       is_active: true,
-      status: TenantStatus.ACTIVE,
+      status: "ACTIVE",
     },
     include: {
       products: {
@@ -43,11 +43,11 @@ export async function getProductByIdAndTenant(productId: string, tenantSlug?: st
         ? {
             slug: tenantSlug,
             is_active: true,
-            status: TenantStatus.ACTIVE,
+            status: "ACTIVE",
           }
         : {
             is_active: true,
-            status: TenantStatus.ACTIVE,
+            status: "ACTIVE",
           },
     },
     include: {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { getServerSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     redirect("/super-admin");
   }
 
-  if (session.role !== UserRole.ADMIN) {
+  if (session.role !== "ADMIN") {
     redirect(`/store/${(await prisma.tenant.findUnique({ where: { id: session.tenantId! } }))?.slug ?? ""}`);
   }
 

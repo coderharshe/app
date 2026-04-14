@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   return withApiHandler(async () => {
     const { id } = await context.params;
     const tenant = await resolveTenantFromRequest(request);
-    const session = requireAuth(request, { roles: [UserRole.ADMIN] });
+    const session = requireAuth(request, { roles: ["ADMIN"] });
     assertTenantAccess(session, tenant.id);
     await assertImpersonationActive(session);
 
@@ -85,7 +85,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   return withApiHandler(async () => {
     const { id } = await context.params;
     const tenant = await resolveTenantFromRequest(request);
-    const session = requireAuth(request, { roles: [UserRole.ADMIN] });
+    const session = requireAuth(request, { roles: ["ADMIN"] });
     assertTenantAccess(session, tenant.id);
     await assertImpersonationActive(session);
 

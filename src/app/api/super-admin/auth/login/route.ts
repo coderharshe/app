@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { getRequestMeta, writeAuditLog } from "@/lib/audit";
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const token = signJwt({
       sub: admin.id,
       tenantId: null,
-      role: UserRole.SUPER_ADMIN,
+      role: "SUPER_ADMIN",
       email: admin.email,
       name: admin.name,
       scope: "platform",
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         id: admin.id,
         email: admin.email,
         name: admin.name,
-        role: UserRole.SUPER_ADMIN,
+        role: "SUPER_ADMIN",
       },
       scope: "platform",
     });

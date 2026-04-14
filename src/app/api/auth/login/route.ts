@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { authCookie, signJwt } from "@/lib/auth/jwt";
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (!user || user.role === UserRole.SUPER_ADMIN || !user.is_active || !user.tenant.is_active) {
+    if (!user || user.role === "SUPER_ADMIN" || !user.is_active || !user.tenant.is_active) {
       throw new ApiError(401, "Invalid credentials");
     }
 

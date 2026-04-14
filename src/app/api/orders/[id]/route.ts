@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+import { } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { ApiError, jsonSuccess, withApiHandler } from "@/lib/api/response";
 import { assertTenantAccess, requireAuth } from "@/lib/auth/session";
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       throw new ApiError(404, "Order not found");
     }
 
-    if (session.role !== UserRole.ADMIN && order.user_id !== session.sub) {
+    if (session.role !== "ADMIN" && order.user_id !== session.sub) {
       throw new ApiError(403, "Cross-user order access denied");
     }
 

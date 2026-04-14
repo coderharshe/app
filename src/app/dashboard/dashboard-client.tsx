@@ -63,7 +63,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
     }
   };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
       await updateOrderStatus(orderId, newStatus);
       setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
@@ -213,7 +213,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
                           <span className="text-sm font-medium text-gray-400">Status</span>
                           <select 
                             value={order.status}
-                            onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
+                            onChange={(e) => handleStatusUpdate(order.id, e.target.value as string)}
                             className={`bg-black border rounded-lg px-3 py-1.5 text-sm font-semibold outline-none cursor-pointer focus:border-indigo-500 transition-colors
                               ${order.status === 'pending' ? 'text-amber-400 border-amber-400/20' : ''}
                               ${order.status === 'paid' ? 'text-indigo-400 border-indigo-400/20' : ''}

@@ -1,5 +1,5 @@
 import type { Tenant } from "@prisma/client";
-import { TenantStatus } from "@prisma/client";
+import { } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { ApiError } from "@/lib/api/response";
 import { getSessionFromRequest } from "@/lib/auth/session";
@@ -15,7 +15,7 @@ export async function requireTenantBySlug(
     throw new ApiError(404, "Tenant not found");
   }
 
-  if (!options?.includeSuspended && tenant.status !== TenantStatus.ACTIVE) {
+  if (!options?.includeSuspended && tenant.status !== "ACTIVE") {
     throw new ApiError(423, "Tenant is suspended");
   }
 
@@ -55,7 +55,7 @@ export async function resolveTenantFromRequest(req: NextRequest): Promise<Tenant
     throw new ApiError(404, "Tenant not found");
   }
 
-  if (tenant.status !== TenantStatus.ACTIVE) {
+  if (tenant.status !== "ACTIVE") {
     throw new ApiError(423, "Tenant is suspended");
   }
 
