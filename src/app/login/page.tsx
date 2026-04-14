@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const search = useSearchParams();
   const tenantPrefill = useMemo(() => search.get("tenant") ?? "", [search]);
@@ -79,5 +79,13 @@ export default function LoginPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center p-8 text-neutral-400">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
