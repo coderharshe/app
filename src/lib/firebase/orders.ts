@@ -4,6 +4,7 @@ import { Order, OrderItem } from "@/types";
 
 export type OrderWithItems = Order & { 
   items: OrderItem[];
+  created_at?: string;
 };
 
 export async function fetchStoreOrders(storeId: string): Promise<OrderWithItems[]> {
@@ -28,9 +29,13 @@ export async function fetchStoreOrders(storeId: string): Promise<OrderWithItems[
   }
 
   // Sort by date descending locally to skip index issues
-  return orders.sort((a,b) => new Date((b as any).created_at || b.createdAt || 0).getTime() - new Date((a as any).created_at || a.createdAt || 0).getTime());
+  return orders.sort(
+    (a, b) =>
+      new Date(b.created_at || b.createdAt || 0).getTime() -
+      new Date(a.created_at || a.createdAt || 0).getTime()
+  );
 }
 
-export async function updateOrderStatus(orderId: string, status: string) {
+export async function updateOrderStatus(orderId: string, status: Order["status"]) {
    await updateDoc(doc(db, "orders", orderId), { status });
 }

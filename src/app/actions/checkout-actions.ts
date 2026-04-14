@@ -4,6 +4,13 @@ import Razorpay from "razorpay";
 import { adminDb } from "@/lib/firebase/admin";
 import { CartItem } from "@/lib/cart-context";
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Unexpected error";
+}
+
 // Only initialize if keys exist to avoid server crash on boot without env vars
 let razorpay: Razorpay | null = null;
 if (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
@@ -22,12 +29,12 @@ export async function createRazorpayOrder(amount: number) {
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100), // convert to smallest currency unit (paise)
       currency: "INR",
-      receipt: "rcpt_" + Math.random().toString(36).substring(7),
+      receipt: `rcpt_${crypto.randomUUID().slice(0, 8)}`,
     });
     return { success: true, orderId: order.id };
-  } catch (err: any) {
-    console.error("Razorpay order creation failed", err);
-    return { success: false, error: err?.message || "Failed to create Razorpay order" };
+  } catch (error: unknown) {
+    console.error("Razorpay order creation failed", error);
+    return { success: false, error: getErrorMessage(error) || "Failed to create Razorpay order" };
   }
 }
 
@@ -78,8 +85,8 @@ export async function processOrder(
     await batch.commit();
     return { success: true };
     
-  } catch (err: any) {
-    console.error("Order processing failed", err);
-    return { success: false, error: err?.message || "Failed to process order" };
+  } catch (error: unknown) {
+    console.error("Order processing failed", error);
+    return { success: false, error: getErrorMessage(error) || "Failed to process order" };
   }
 }

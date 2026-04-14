@@ -1,0 +1,247 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CUSTOMER
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum SessionScope {
+  PLATFORM
+  TENANT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  CREATED
+  SUCCESS
+  FAILED
+}
+
+enum ImpersonationStatus {
+  ACTIVE
+  ENDED
+  EXPIRED
+}
+
+model Tenant {
+  id               String       @id @default(uuid())
+  slug             String       @unique
+  name             String
+  custom_domain    String?      @unique
+  is_active        Boolean      @default(true)
+  status           TenantStatus @default(ACTIVE)
+  suspended_reason String?
+  suspended_at     DateTime?
+  suspended_by     String?
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+
+  users                  User[]
+  products               Product[]
+  orders                 Order[]
+  carts                  Cart[]
+  payments               Payment[]
+  impersonation_sessions ImpersonationSession[]
+  audit_logs             AuditLog[]
+}
+
+model PlatformAdmin {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  password_hash String
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  audit_logs             AuditLog[]
+  impersonation_sessions ImpersonationSession[]
+}
+
+model User {
+  id            String    @id @default(uuid())
+  tenant_id     String
+  email         String
+  name          String
+  password_hash String
+  role          UserRole
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  orders Order[]
+  carts  Cart[]
+
+  impersonation_sessions ImpersonationSession[]
+  audit_logs             AuditLog[]
+
+  @@unique([tenant_id, email])
+  @@index([tenant_id, role])
+}
+
+model Product {
+  id               String   @id @default(uuid())
+  tenant_id        String
+  name             String
+  slug             String
+  description      String
+  price_in_paise   Int
+  compare_at_paise Int?
+  currency         String   @default("INR")
+  image_url        String?
+  inventory        Int      @default(0)
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  tenant      Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  order_items OrderItem[]
+
+  @@unique([tenant_id, slug])
+  @@index([tenant_id, is_active])
+}
+
+model Order {
+  id                 String      @id @default(uuid())
+  tenant_id          String
+  user_id            String
+  status             OrderStatus @default(PENDING)
+  subtotal_in_paise  Int
+  total_in_paise     Int
+  currency           String      @default("INR")
+  shipping_name      String
+  shipping_email     String
+  shipping_phone     String
+  shipping_address_1 String
+  shipping_address_2 String?
+  shipping_city      String
+  shipping_state     String
+  shipping_postal    String
+  shipping_country   String      @default("IN")
+  notes              String?
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+
+  tenant  Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  items   OrderItem[]
+  payment Payment?
+
+  @@index([tenant_id, created_at])
+  @@index([tenant_id, user_id])
+}
+
+model OrderItem {
+  id               String   @id @default(uuid())
+  tenant_id        String
+  order_id         String
+  product_id       String
+  product_name     String
+  unit_price_paise Int
+  quantity         Int
+  line_total_paise Int
+  created_at       DateTime @default(now())
+
+  order   Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@index([tenant_id, order_id])
+}
+
+model Cart {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  user_id    String
+  items_json Json
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, user_id])
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  tenant_id           String
+  order_id            String        @unique
+  provider            String        @default("RAZORPAY")
+  provider_order_id   String
+  provider_payment_id String?
+  provider_signature  String?
+  amount_in_paise     Int
+  currency            String        @default("INR")
+  status              PaymentStatus @default(CREATED)
+  verified_at         DateTime?
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  order  Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, status])
+}
+
+model ImpersonationSession {
+  id                  String              @id @default(uuid())
+  super_admin_id      String
+  tenant_id           String
+  tenant_admin_id     String
+  reason              String
+  status              ImpersonationStatus @default(ACTIVE)
+  started_at          DateTime            @default(now())
+  ended_at            DateTime?
+  expires_at          DateTime
+
+  super_admin PlatformAdmin @relation(fields: [super_admin_id], references: [id], onDelete: Cascade)
+  tenant      Tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant_admin User         @relation(fields: [tenant_admin_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, status])
+  @@index([super_admin_id, status])
+}
+
+model AuditLog {
+  id                   String   @id @default(uuid())
+  actor_super_admin_id String?
+  effective_user_id    String?
+  tenant_id            String?
+  action               String
+  target_type          String
+  target_id            String?
+  metadata_json        Json?
+  ip_address           String?
+  user_agent           String?
+  created_at           DateTime @default(now())
+
+  actor_super_admin PlatformAdmin? @relation(fields: [actor_super_admin_id], references: [id], onDelete: SetNull)
+  effective_user    User?          @relation(fields: [effective_user_id], references: [id], onDelete: SetNull)
+  tenant            Tenant?        @relation(fields: [tenant_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id, created_at])
+  @@index([action, created_at])
+}

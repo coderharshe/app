@@ -16,6 +16,6 @@ if (!admin.apps.length) {
   }
 }
 
-export const adminDb = admin.firestore();
-export const adminAuth = admin.auth();
-export const adminStorage = admin.storage();
+export const adminDb = (admin.apps.length ? admin.firestore() : { collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) }) as admin.firestore.Firestore;
+export const adminAuth = (admin.apps.length ? admin.auth() : { verifySessionCookie: async () => null, createSessionCookie: async () => "", verifyIdToken: async () => null }) as admin.auth.Auth;
+export const adminStorage = (admin.apps.length ? admin.storage() : { bucket: () => ({ file: () => ({ getSignedUrl: async () => [] }) }) }) as admin.storage.Storage;

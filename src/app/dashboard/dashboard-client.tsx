@@ -1,16 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Product } from "@/types";
+import Image from "next/image";
+import { Product, Order } from "@/types";
 import { fetchStoreProducts, addProduct, deleteProductRecord } from "@/lib/firebase/products";
 import { fetchStoreOrders, updateOrderStatus, OrderWithItems } from "@/lib/firebase/orders";
 import { formatPrice } from "@/lib/utils";
 import { Package, Plus, Trash2, Loader2, Image as ImageIcon, ClipboardList, TrendingUp } from "lucide-react";
 
+type OrderStatus = Order["status"];
+type OrderWithLegacyFields = OrderWithItems & {
+  total_amount?: number;
+  payment_method?: string;
+};
+
 export default function DashboardClient({ storeId }: { storeId: string }) {
   const [tab, setTab] = useState<"products" | "orders">("products");
   const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<OrderWithItems[]>([]);
+  const [orders, setOrders] = useState<OrderWithLegacyFields[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form State
@@ -56,10 +63,10 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
     }
   };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
       await updateOrderStatus(orderId, newStatus);
-      setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus as any } : o));
+      setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
     } catch (err) {
       console.error(err);
       alert("Failed to update status");
@@ -67,7 +74,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
   };
 
   const totalRevenue = orders.reduce((acc, order) => {
-     if (order.status !== "pending") return acc + (order.totalAmount || (order as any).total_amount || 0);
+     if (order.status !== "pending") return acc + (order.totalAmount || order.total_amount || 0);
      return acc;
   }, 0);
 
@@ -98,7 +105,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
         </div>
       </div>
       
-      {/* ──────────────── ANALYTICS HUD ──────────────── */}
+      {/* Analytics HUD */}
       <div className="grid sm:grid-cols-3 gap-6 mb-8">
          <div className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-2xl">
            <div className="text-emerald-500 mb-2"><TrendingUp className="w-6 h-6" /></div>
@@ -117,7 +124,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
          </div>
       </div>
 
-      {/* ──────────────── PRODUCTS TAB ──────────────── */}
+      {/* Products Tab */}
       {tab === "products" && (
         <div className="grid lg:grid-cols-3 gap-10">
           <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 h-fit">
@@ -149,7 +156,17 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
               <div className="grid sm:grid-cols-2 gap-4">
                 {products.map(p => (
                   <div key={p.id} className="flex flex-col bg-gray-900 border border-white/5 rounded-2xl overflow-hidden group">
-                    {p.images?.[0] ? <img src={p.images[0]} className="h-48 w-full object-cover group-hover:scale-105 transition-transform" /> : <div className="h-48 bg-gray-800 flex items-center justify-center">No Image</div>}
+                    {p.images?.[0] ? (
+                      <Image
+                        src={p.images[0]}
+                        alt={p.name}
+                        width={600}
+                        height={400}
+                        className="h-48 w-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="h-48 bg-gray-800 flex items-center justify-center">No Image</div>
+                    )}
                     <div className="p-4 flex-grow flex flex-col">
                       <h3 className="font-bold text-lg leading-tight">{p.name}</h3>
                       <p className="text-indigo-400 font-bold mt-1">${p.price.toFixed(2)}</p>
@@ -167,7 +184,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
         </div>
       )}
       
-      {/* ──────────────── ORDERS TAB ──────────────── */}
+      {/* Orders Tab */}
       {tab === "orders" && (
         <div className="space-y-6">
 
@@ -187,8 +204,8 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
                        <div>
                           <div className="text-xs text-gray-500 mb-1">Order ID: {order.id}</div>
                           <div className="flex items-center gap-3">
-                             <span className="text-xl font-extrabold text-white">{formatPrice((order as any).total_amount || order.totalAmount || 0)}</span>
-                             <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-400">{(order as any).payment_method?.toUpperCase()}</span>
+                             <span className="text-xl font-extrabold text-white">{formatPrice(order.total_amount || order.totalAmount || 0)}</span>
+                             <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-400">{order.payment_method?.toUpperCase()}</span>
                           </div>
                        </div>
                        
@@ -196,7 +213,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
                           <span className="text-sm font-medium text-gray-400">Status</span>
                           <select 
                             value={order.status}
-                            onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                            onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
                             className={`bg-black border rounded-lg px-3 py-1.5 text-sm font-semibold outline-none cursor-pointer focus:border-indigo-500 transition-colors
                               ${order.status === 'pending' ? 'text-amber-400 border-amber-400/20' : ''}
                               ${order.status === 'paid' ? 'text-indigo-400 border-indigo-400/20' : ''}

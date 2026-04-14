@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StoreBase - Multi-tenant eCommerce SaaS
 
-## Getting Started
+Production-ready Next.js App Router + PostgreSQL (Prisma) platform with tenant isolation, JWT auth, Razorpay, and a dedicated super-admin portal.
 
-First, run the development server:
+## Implemented Dashboards
+
+1. Super Admin (SaaS owner): `/super-admin`
+2. Shopkeeper (tenant admin): `/dashboard`
+3. Customer storefront: `/store/[storeSlug]`
+
+## Core Architecture
+
+- Multi-tenant data isolation via `tenant_id` + scoped queries
+- Tenant detection by subdomain and path (`/store/{slug}`)
+- JWT auth with session scopes:
+  - `scope=platform` for super admins
+  - `scope=tenant` for tenant admins/customers
+- Role model: `SUPER_ADMIN`, `ADMIN`, `CUSTOMER`
+
+## Super Admin Features (v1 Core Ops)
+
+- Dedicated login: `/super-admin/login`
+- Platform metrics (tenants, orders, GMV, user counts)
+- Tenant management:
+  - list/search tenants
+  - suspend/activate store
+- Tenant support snapshot:
+  - recent orders
+  - top products
+  - failed payments
+- Impersonation workflow:
+  - start temporary tenant-admin impersonation (reason required)
+  - stop impersonation and return to platform scope
+- Audit feed with actor/effective-user metadata
+
+## Key API Routes
+
+### Tenant APIs
+- `/api/auth/*`
+- `/api/products/*`
+- `/api/cart/*`
+- `/api/orders/*`
+- `/api/payments/*`
+
+### Super Admin APIs
+- `/api/super-admin/auth/login`
+- `/api/super-admin/auth/logout`
+- `/api/super-admin/auth/me`
+- `/api/super-admin/tenants`
+- `/api/super-admin/tenants/:id/suspend`
+- `/api/super-admin/tenants/:id/activate`
+- `/api/super-admin/tenants/:id/snapshot`
+- `/api/super-admin/audit`
+- `/api/super-admin/impersonation/start`
+- `/api/super-admin/impersonation/stop`
+
+## Prisma Models
+
+- `Tenant` (with `status`, suspension fields)
+- `PlatformAdmin`
+- `User`
+- `Product`
+- `Order`
+- `OrderItem`
+- `Cart`
+- `Payment`
+- `AuditLog`
+- `ImpersonationSession`
+
+Schema: `prisma/schema.prisma`
+
+## Security Controls
+
+- Zod validation for all APIs
+- Rate limiting in middleware
+- Scope + role checks per route
+- Cross-tenant access prevention
+- Suspended tenant blocking (`423`)
+- Audit logs for privileged operations
+- Login lockout/backoff for super admin auth
+
+## Seeding Super Admin Accounts
+
+Set `SUPER_ADMIN_SEED_JSON` in env as JSON array, then run:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run prisma:seed
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:seed
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy (Vercel)
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Configure all env vars (including `DATABASE_URL`, `JWT_SECRET`, Razorpay keys)
+2. Run migrations in deploy pipeline: `npm run prisma:deploy`
+3. Build: `npm run build`

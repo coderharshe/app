@@ -26,5 +26,6 @@ export function formatPrice(price: number, currency = "INR"): string {
  */
 export function truncate(str: string, length: number): string {
   if (str.length <= length) return str;
-  return str.slice(0, length).trimEnd() + "…";
+  return str.slice(0, length).trimEnd() + "...";
 }
+

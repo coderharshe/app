@@ -15,22 +15,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "StoreBase — Launch Your Online Store",
+    default: "StoreBase | Multi-tenant eCommerce SaaS",
     template: "%s | StoreBase",
   },
   description:
-    "The modern multi-tenant ecommerce platform. Launch, manage, and scale your online store in minutes.",
-  keywords: [
-    "ecommerce",
-    "online store",
-    "multi-tenant",
-    "saas",
-    "india",
-    "razorpay",
-  ],
+    "Production-ready multi-tenant ecommerce platform with tenant isolation, JWT auth and Razorpay payments.",
 };
-
-import { CartProvider } from "@/lib/cart-context";
 
 export default function RootLayout({
   children,
@@ -38,16 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-background text-foreground">
-        <CartProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </CartProvider>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <main className="mx-auto min-h-[calc(100vh-140px)] max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <Footer />
       </body>
     </html>
   );

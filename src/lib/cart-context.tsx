@@ -2,10 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Product } from "@/types";
+import { addItemWithStoreGuard, CartItemState } from "@/lib/cart-utils";
 
-export interface CartItem extends Product {
-  quantity: number;
-}
+export type CartItem = CartItemState;
 
 interface CartContextType {
   items: CartItem[];
@@ -20,46 +19,40 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Load from localStorage on mount
-  useEffect(() => {
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
     try {
       const stored = localStorage.getItem("cart_items");
       if (stored) {
-        setItems(JSON.parse(stored));
+        return JSON.parse(stored) as CartItem[];
       }
     } catch (e) {
       console.error("Failed to load cart", e);
     }
-    setIsInitialized(true);
-  }, []);
+    return [];
+  });
 
   // Save to localStorage when items change
   useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem("cart_items", JSON.stringify(items));
-    }
-  }, [items, isInitialized]);
+    localStorage.setItem("cart_items", JSON.stringify(items));
+  }, [items]);
 
   const addItem = (product: Product, quantity = 1) => {
     setItems((currentItems) => {
-      // Store Isolation Check: Prevent mixing products from different stores
-      if (currentItems.length > 0 && currentItems[0].store_id !== product.store_id) {
+      const { items: nextItems, blocked } = addItemWithStoreGuard(
+        currentItems,
+        product,
+        quantity
+      );
+
+      if (blocked) {
         alert("You cannot add items from different stores to the same cart. Please complete your checkout for the current store or clear your cart first.");
         return currentItems;
       }
 
-      const existing = currentItems.find((item) => item.id === product.id);
-      if (existing) {
-        return currentItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...currentItems, { ...product, quantity }];
+      return nextItems;
     });
   };
 
