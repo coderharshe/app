@@ -1,54 +1,71 @@
 import Link from "next/link";
-import { ArrowRight, Store as StoreIcon } from "lucide-react";
-import type { Store } from "@/types";
+import { Store, Star, ArrowRight } from "lucide-react";
 
 interface StoreCardProps {
-  store: Store;
-  productCount: number;
+  slug: string;
+  name: string;
+  description?: string;
+  productCount?: number;
+  rating?: number;
 }
 
-export function StoreCard({ store, productCount }: StoreCardProps) {
+export function StoreCard({
+  slug,
+  name,
+  description,
+  productCount = 0,
+  rating = 0,
+}: StoreCardProps) {
   return (
     <Link
-      href={`/store/${store.slug}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-gray-900/50 p-6 transition-all duration-300 hover:border-white/10 hover:bg-gray-900/80 hover:shadow-2xl hover:shadow-indigo-500/5"
+      href={`/store/${slug}`}
+      className="group relative flex flex-col rounded-2xl bg-[var(--surface-container)] overflow-hidden card-hover ghost-border"
     >
-      {/* Decorative gradient orb */}
-      <div
-        className="absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-20 blur-2xl transition-opacity duration-300 group-hover:opacity-40"
-        style={{ backgroundColor: store.themeColor }}
-      />
-
-      {/* Icon */}
-      <div
-        className="flex h-12 w-12 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
-        style={{ backgroundColor: `${store.themeColor}20` }}
-      >
-        <StoreIcon
-          className="h-6 w-6"
-          style={{ color: store.themeColor }}
-        />
+      {/* Gradient Header */}
+      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-[var(--primary-container)] via-[var(--secondary-container)] to-[var(--surface-container)]">
+        {/* Decorative Orbs */}
+        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[var(--primary)] opacity-10 blur-xl" />
+        <div className="absolute -left-4 bottom-0 h-16 w-16 rounded-full bg-[var(--tertiary)] opacity-10 blur-xl" />
+        
+        {/* Store Icon */}
+        <div className="absolute bottom-0 left-4 translate-y-1/2">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--surface-container)] ghost-border shadow-lg">
+            <Store className="h-6 w-6 text-[var(--primary)]" />
+          </div>
+        </div>
       </div>
 
-      {/* Name */}
-      <h3 className="mt-4 text-lg font-bold text-white transition-colors group-hover:text-indigo-300">
-        {store.name}
-      </h3>
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-4 pt-8">
+        <h3 className="font-[family-name:var(--font-heading)] text-base font-bold text-[var(--on-surface)] group-hover:text-[var(--primary)] transition-colors">
+          {name}
+        </h3>
 
-      {/* Description */}
-      <p className="mt-2 text-sm leading-relaxed text-gray-500 line-clamp-2">
-        {store.description}
-      </p>
+        {description && (
+          <p className="mt-1 text-xs text-[var(--on-surface-variant)] line-clamp-2">
+            {description}
+          </p>
+        )}
 
-      {/* Footer */}
-      <div className="mt-auto flex items-center justify-between pt-5">
-        <span className="text-xs font-medium text-gray-500">
-          {productCount} {productCount === 1 ? "product" : "products"}
-        </span>
-        <span className="flex items-center gap-1 text-xs font-semibold text-indigo-400 transition-transform duration-300 group-hover:translate-x-1">
-          Visit Store
-          <ArrowRight className="h-3.5 w-3.5" />
-        </span>
+        {/* Stats Row */}
+        <div className="mt-auto flex items-center justify-between pt-4">
+          <div className="flex items-center gap-3">
+            {rating > 0 && (
+              <div className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                <span className="text-xs font-medium text-[var(--on-surface-variant)]">
+                  {rating.toFixed(1)}
+                </span>
+              </div>
+            )}
+            {productCount > 0 && (
+              <span className="text-xs text-[var(--on-surface-variant)]">
+                {productCount} products
+              </span>
+            )}
+          </div>
+          <ArrowRight className="h-4 w-4 text-[var(--outline)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
+        </div>
       </div>
     </Link>
   );

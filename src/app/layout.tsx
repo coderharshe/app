@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import { Navbar, Footer } from "@/components/layout";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "StoreBase | Multi-tenant eCommerce SaaS",
+    default: "StoreBase — Discover Amazing Products from Local Vendors",
     template: "%s | StoreBase",
   },
   description:
-    "Production-ready multi-tenant ecommerce platform with tenant isolation, JWT auth and Razorpay payments.",
+    "StoreBase connects customers with amazing local vendors. Discover unique products, support small businesses, and shop with confidence.",
+  keywords: ["ecommerce", "marketplace", "local vendors", "online shopping", "StoreBase"],
 };
 
 export default function RootLayout({
@@ -28,10 +31,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-screen bg-background text-foreground">
+    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
+      <body className="min-h-screen bg-background text-foreground antialiased">
         <Navbar />
-        <main className="mx-auto min-h-[calc(100vh-140px)] max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="min-h-[calc(100vh-160px)]">{children}</main>
         <Footer />
       </body>
     </html>

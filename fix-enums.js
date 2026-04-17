@@ -11,7 +11,16 @@ function walk(dir, callback) {
   });
 }
 
-const enumNames = ['TenantStatus', 'OrderStatus', 'PaymentStatus', 'UserRole', 'SessionScope', 'ImpersonationStatus'];
+const enumMappings = {
+  TenantStatus: '["ACTIVE", "SUSPENDED", "PENDING"]',
+  UserRole: '["SUPER_ADMIN", "ADMIN", "CUSTOMER"]',
+  OrderStatus: '["PENDING", "PAID", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]',
+  PaymentStatus: '["CREATED", "SUCCESS", "FAILED"]',
+  SessionScope: '["PLATFORM", "TENANT"]',
+  ImpersonationStatus: '["ACTIVE", "ENDED", "EXPIRED"]'
+};
+
+const enumNames = Object.keys(enumMappings);
 
 walk(dir, function(filePath) {
   if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
@@ -19,30 +28,36 @@ walk(dir, function(filePath) {
     let newContent = content;
 
     // 1. Replace Enum.VALUE with "VALUE"
-    const regex = new RegExp(`(${enumNames.join('|')})\\.([A-Z_]+)`, 'g');
+    const regex = new RegExp(`(?<!["'])(${enumNames.join('|')})\\.([A-Z_]+)(?!["'])`, 'g');
     newContent = newContent.replace(regex, '"$2"');
 
-    // 2. Remove enum references from @prisma/client imports
+    // 2. Replace z.nativeEnum(Enum) with z.enum([...])
+    enumNames.forEach(e => {
+        const zodRegex = new RegExp(`z\\.nativeEnum\\(${e}\\)`, 'g');
+        newContent = newContent.replace(zodRegex, `z.enum(${enumMappings[e]})`);
+    });
+
+    // 3. Remove enum references from @prisma/client imports
     enumNames.forEach(e => {
         const importRegex = new RegExp(`\\b${e}\\b\\s*,?\\s*`, 'g');
-        // We only want to remove it inside the import { ... } from '@prisma/client' line
-        // But doing it globally on lines that start with import might be safer
         const lines = newContent.split('\n');
         for(let i=0; i<lines.length; i++) {
             if (lines[i].includes('@prisma/client') && lines[i].includes('import')) {
                 lines[i] = lines[i].replace(importRegex, '');
+                // Clean up empty imports
+                if (lines[i].includes('import {  }')) {
+                    lines[i] = '';
+                }
             }
         }
         newContent = lines.join('\n');
     });
 
-    // 3. Replace variable types from Enum to string
-    // e.g. `role: UserRole` -> `role: string`
+    // 4. Replace variable types from Enum to string
     enumNames.forEach(e => {
         newContent = newContent.replace(new RegExp(`:\\s*${e}(?=\\s|\\(|\\[|;|\\n|\\)|,)`, 'g'), ': string');
         newContent = newContent.replace(new RegExp(`<${e}>`, 'g'), '<string>');
         newContent = newContent.replace(new RegExp(`${e}\\[\\]`, 'g'), 'string[]');
-        // type casts: `as UserRole`
         newContent = newContent.replace(new RegExp(`as\\s+${e}(?=\\s|\\(|\\[|;|\\n|\\)|,)`, 'g'), 'as string');
     });
 

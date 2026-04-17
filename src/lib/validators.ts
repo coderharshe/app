@@ -99,7 +99,7 @@ export const webhookNotificationSchema = z.object({
 
 export const tenantStatusUpdateSchema = z.object({
   reason: z.string().min(3).max(200).optional(),
-  status: z.nativeEnum(TenantStatus),
+  status: z.enum(["ACTIVE", "SUSPENDED", "PENDING"]),
 });
 
 export const impersonationStartSchema = z.object({

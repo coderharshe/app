@@ -1,5 +1,8 @@
 "use client";
 
+import { ShoppingCart, Check } from "lucide-react";
+import { useState } from "react";
+
 type CartItem = {
   productId: string;
   quantity: number;
@@ -16,6 +19,8 @@ export function AddToCartButton({
   tenantSlug: string;
   productId: string;
 }) {
+  const [added, setAdded] = useState(false);
+
   function addToCart() {
     const key = storageKey(tenantSlug);
     const current = localStorage.getItem(key);
@@ -29,12 +34,31 @@ export function AddToCartButton({
     }
 
     localStorage.setItem(key, JSON.stringify(parsed));
-    alert("Item added to cart");
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   }
 
   return (
-    <button className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white" onClick={addToCart}>
-      Add To Cart
+    <button
+      onClick={addToCart}
+      disabled={added}
+      className={`btn px-8 py-3.5 ${
+        added
+          ? "bg-emerald-500/10 text-emerald-400 ghost-border pointer-events-none"
+          : "btn-primary w-full sm:w-auto"
+      }`}
+    >
+      {added ? (
+        <>
+          <Check className="h-4 w-4" />
+          Added to Cart
+        </>
+      ) : (
+        <>
+          <ShoppingCart className="h-4 w-4" />
+          Add to Cart
+        </>
+      )}
     </button>
   );
 }
