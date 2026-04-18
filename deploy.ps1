@@ -11,7 +11,8 @@ $DB_USER = "postgres"
 $DB_PASS = "StoreBasePass2026!"
 $DB_NAME = "postgres"
 
-# Cloud Run connects to Cloud SQL via Unix socket through the built-in Auth Proxy
+# For Build time (Cloud Build doesn't have the auth proxy socket mapped)
+# We might temporarily use the Public IP if static generation needs DB. However, using the socket is fine if there are no build-time DB dependencies.
 $DATABASE_URL = "postgresql://${DB_USER}:${DB_PASS}@localhost/${DB_NAME}?host=/cloudsql/${SQL_CONNECTION}"
 
 # Auth secrets
@@ -28,6 +29,24 @@ $FIREBASE_APP_ID          = "1:700561741560:web:84e9055b429aadd44ecd0d"
 # Firebase Admin
 $FIREBASE_CLIENT_EMAIL = "your_client_email"
 $FIREBASE_PRIVATE_KEY  = "7119f41fadee4529bbce1e82c2b12cb0cc9af1a7"
+
+Write-Host "Creating .env.production file for Cloud Build..." -ForegroundColor Cyan
+@"
+NODE_ENV=production
+DATABASE_URL=$DATABASE_URL
+JWT_SECRET=$JWT_SECRET
+JWT_EXPIRES_IN=7d
+NEXT_PUBLIC_APP_URL=https://storebase-web-700561741560.us-central1.run.app
+ROOT_DOMAIN=storebase-web-700561741560.us-central1.run.app
+NEXT_PUBLIC_FIREBASE_API_KEY=$FIREBASE_API_KEY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_SENDER_ID
+NEXT_PUBLIC_FIREBASE_APP_ID=$FIREBASE_APP_ID
+FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY
+"@ | Out-File -FilePath .env.production -Encoding utf8
 
 Write-Host "Setting Google Cloud Project..." -ForegroundColor Cyan
 gcloud.cmd config set project $PROJECT_ID
@@ -57,5 +76,7 @@ gcloud.cmd run deploy $SERVICE `
   --set-env-vars="FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL" `
   --set-env-vars="FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY"
 
-Write-Host "Deployment complete!" -ForegroundColor Green
+Write-Host "Deployment complete! Cleaning up .env.production..." -ForegroundColor Cyan
+Remove-Item .env.production -ErrorAction SilentlyContinue
+
 Write-Host "Service URL: https://storebase-web-700561741560.us-central1.run.app" -ForegroundColor Yellow

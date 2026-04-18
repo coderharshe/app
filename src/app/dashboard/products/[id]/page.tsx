@@ -198,6 +198,8 @@ export default function EditProductPage() {
                 <FileText className="h-3.5 w-3.5" /> Description
               </label>
               <textarea
+                required
+                minLength={10}
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                 rows={4}

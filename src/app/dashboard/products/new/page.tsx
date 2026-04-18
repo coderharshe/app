@@ -133,9 +133,11 @@ export default function NewProductPage() {
                 <FileText className="h-3.5 w-3.5" /> Description
               </label>
               <textarea
+                required
+                minLength={10}
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe your product..."
+                placeholder="Describe your product (minimum 10 characters)..."
                 rows={4}
                 className="w-full rounded-xl bg-[var(--surface-container-lowest)] px-4 py-2.5 text-sm text-[var(--on-surface)] placeholder:text-[var(--outline)] outline-none ghost-border focus:ring-2 focus:ring-[var(--primary-container)] transition-all resize-none"
               />
