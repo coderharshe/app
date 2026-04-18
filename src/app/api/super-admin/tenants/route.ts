@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const tenants = await prisma.tenant.findMany({
       where: {
         name: search ? { contains: search, mode: "insensitive" } : undefined,
-        status: statusFilter && Object.values(TenantStatus).includes(statusFilter) ? statusFilter : undefined,
+        status: statusFilter && ["ACTIVE", "INACTIVE", "SUSPENDED"].includes(statusFilter) ? statusFilter : undefined,
       },
       include: {
         _count: {

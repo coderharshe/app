@@ -12,6 +12,8 @@ import { getServerSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { formatPriceFromPaise } from "@/lib/utils";
 
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
@@ -54,6 +56,13 @@ export default async function DashboardPage() {
   return (
     <div className="bg-[var(--surface)]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+        {/* Onboarding Checklist */}
+        {productCount < 5 && (
+          <section className="animate-fade-in">
+            <OnboardingChecklist productCount={productCount} tenantName={tenant.name} />
+          </section>
+        )}
+
         {/* Impersonation Banner */}
         {session.actorSuperAdminId && session.impersonationSessionId ? (
           <section className="rounded-2xl bg-amber-500/10 p-4 ghost-border-visible border-amber-500/30">

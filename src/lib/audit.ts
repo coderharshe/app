@@ -22,7 +22,7 @@ export async function writeAuditLog(input: AuditInput) {
       action: input.action,
       target_type: input.targetType,
       target_id: input.targetId ?? null,
-      metadata_json: input.metadata ? (input.metadata as Prisma.InputJsonValue) : undefined,
+      metadata_json: input.metadata ? JSON.stringify(input.metadata) : undefined,
       ip_address: input.ipAddress ?? null,
       user_agent: input.userAgent ?? null,
     },

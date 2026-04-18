@@ -5,5 +5,7 @@ npm-debug.log
 README.md
 .next
 .git
-#.env*
+.env*
 !.env.example
+.test-dist
+tests

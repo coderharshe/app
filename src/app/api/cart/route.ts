@@ -27,7 +27,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const items = ((cart?.items_json as CartJsonItem[] | null) ?? []).filter(Boolean);
+    let items: CartJsonItem[] = [];
+    if (cart?.items_json) {
+      try {
+        items = JSON.parse(cart.items_json) as CartJsonItem[];
+      } catch (e) {
+        items = [];
+      }
+    }
+    items = items.filter(Boolean);
     const products = await prisma.product.findMany({
       where: {
         tenant_id: tenant.id,
@@ -81,12 +89,12 @@ export async function PUT(request: NextRequest) {
         },
       },
       update: {
-        items_json: toCartJson(body.items),
+        items_json: JSON.stringify(toCartJson(body.items)),
       },
       create: {
         tenant_id: tenant.id,
         user_id: session.sub,
-        items_json: toCartJson(body.items),
+        items_json: JSON.stringify(toCartJson(body.items)),
       },
     });
 

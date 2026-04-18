@@ -16,12 +16,11 @@ async function getDriveClient() {
     throw new Error("Google Drive credentials (CLIENT_EMAIL or PRIVATE_KEY) are missing in environment variables.");
   }
 
-  const auth = new google.auth.JWT(
-    clientEmail,
-    undefined,
-    privateKey,
-    SCOPES
-  );
+  const auth = new google.auth.JWT({
+    email: clientEmail,
+    key: privateKey,
+    scopes: SCOPES,
+  });
 
   return google.drive({ version: "v3", auth });
 }

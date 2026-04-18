@@ -80,7 +80,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
     }
   };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
       await updateOrderStatus(orderId, newStatus);
       setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
@@ -139,6 +139,52 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
           </button>
         </div>
       </div>
+
+      {/* Store Setup Checklist */}
+      {products.length === 0 || orders.length === 0 ? (
+        <div className="mb-8 rounded-2xl bg-[var(--surface-container)] p-6 ghost-border">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="font-[family-name:var(--font-heading)] text-lg font-bold text-[var(--on-surface)] flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-[var(--primary)]" />
+                Store Setup Checklist
+              </h2>
+              <p className="text-sm text-[var(--on-surface-variant)] mt-1">
+                Complete these steps to start selling
+              </p>
+            </div>
+            <div className="text-sm font-bold text-[var(--primary)] bg-[var(--primary-container)] px-3 py-1 rounded-full">
+              {[products.length > 0, orders.length > 0].filter(Boolean).length}/2 Completed
+            </div>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className={`p-4 rounded-xl border-2 transition-all ${products.length > 0 ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-700" : "border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] text-[var(--on-surface)]"}`}>
+              <div className="flex items-start gap-4">
+                <div className={`flex shrink-0 h-8 w-8 items-center justify-center rounded-full ${products.length > 0 ? "bg-emerald-500 text-white" : "bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]"}`}>
+                  {products.length > 0 ? "✓" : "1"}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm mb-1">Add your first product</h3>
+                  <p className={`text-xs ${products.length > 0 ? "text-emerald-600/70" : "text-[var(--on-surface-variant)]"}`}>Upload an image, set a price, and describe what you are selling.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-xl border-2 transition-all ${orders.length > 0 ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-700" : "border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] text-[var(--on-surface)]"}`}>
+              <div className="flex items-start gap-4">
+                <div className={`flex shrink-0 h-8 w-8 items-center justify-center rounded-full ${orders.length > 0 ? "bg-emerald-500 text-white" : "bg-[var(--surface-container-high)] text-[var(--on-surface-variant)]"}`}>
+                  {orders.length > 0 ? "✓" : "2"}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm mb-1">Process your first order</h3>
+                  <p className={`text-xs ${orders.length > 0 ? "text-emerald-600/70" : "text-[var(--on-surface-variant)]"}`}>Share your store link with customers to get your first sale.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Analytics HUD */}
       <div className="grid sm:grid-cols-3 gap-5 mb-8">
@@ -352,7 +398,7 @@ export default function DashboardClient({ storeId }: { storeId: string }) {
                         <span className="text-sm font-medium text-[var(--on-surface-variant)]">Status</span>
                         <select
                           value={order.status}
-                          onChange={(e) => handleStatusUpdate(order.id, e.target.value as string)}
+                          onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
                           className={`bg-[var(--surface-container-lowest)] rounded-xl px-3 py-2 text-sm font-semibold outline-none ghost-border focus:ring-2 focus:ring-[var(--primary-container)] cursor-pointer transition-all
                             ${order.status === "pending" ? "text-amber-400" : ""}
                             ${order.status === "paid" ? "text-indigo-400" : ""}

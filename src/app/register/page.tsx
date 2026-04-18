@@ -22,6 +22,8 @@ function RegisterContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [success, setSuccess] = useState<{ slug: string; name: string } | null>(null);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -49,11 +51,48 @@ function RegisterContent() {
     }
 
     if (mode === "ADMIN") {
-      router.push("/dashboard");
+      setSuccess({ slug: json.data.tenant.slug, name: json.data.tenant.name });
       return;
     }
 
     router.push(`/store/${json.data.tenant.slug}`);
+  }
+
+  if (success) {
+    return (
+      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md animate-fade-in-up text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl gradient-primary shadow-lg ring-8 ring-[var(--primary-container)]/20">
+            <Store className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="font-[family-name:var(--font-heading)] text-3xl font-extrabold text-[var(--on-surface)] mb-2">
+            Store Created!
+          </h1>
+          <p className="text-[var(--on-surface-variant)] mb-8">
+            Congratulations! <strong>{success.name}</strong> is now live on StoreBase.
+          </p>
+          
+          <div className="bg-[var(--surface-container)] rounded-2xl p-6 mb-8 ghost-border text-left">
+            <p className="text-xs font-bold text-[var(--primary)] uppercase tracking-wider mb-2">Store URL</p>
+            <div className="flex items-center justify-between bg-[var(--surface-container-lowest)] p-3 rounded-xl ghost-border mb-4">
+              <code className="text-sm font-semibold truncate text-[var(--on-surface)]">
+                {window.location.origin}/store/{success.slug}
+              </code>
+            </div>
+            <p className="text-sm text-[var(--on-surface-variant)] leading-relaxed">
+              Your dashboard is ready. Let's set up your products and start selling.
+            </p>
+          </div>
+
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="btn-primary w-full py-4 text-lg font-bold"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

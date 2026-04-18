@@ -1,104 +1,140 @@
 # StoreBase - Multi-tenant eCommerce SaaS
 
-Production-ready Next.js App Router + PostgreSQL (Prisma) platform with tenant isolation, JWT auth, Razorpay, and a dedicated super-admin portal.
+StoreBase is a production-grade, multi-tenant eCommerce SaaS platform built with Next.js 16 (App Router), Prisma, and PostgreSQL. It features robust tenant isolation, a modern "Indigo Ethereal" design system, and multi-layered authentication.
 
-## Implemented Dashboards
+## 🚀 Key Features
 
-1. Super Admin (SaaS owner): `/super-admin`
-2. Shopkeeper (tenant admin): `/dashboard`
-3. Customer storefront: `/store/[storeSlug]`
+### 💎 Super Admin (Platform Owner)
+- **Centralized Dashboard**: Monitor platform-wide metrics including total tenants, orders, GMV, and user growth.
+- **Tenant Management**: Full lifecycle control—search, activate, suspend, or decommission stores.
+- **Support Snapshot**: Quick access to recent orders, top products, and failed payments for any tenant.
+- **Impersonation Workflow**: Securely impersonate tenant admins for debugging (requires justification, audited).
+- **Audit Logging**: Comprehensive platform-wide logs capturing actor and effective-user metadata.
 
-## Core Architecture
+### 🏪 Shopkeeper (Tenant Admin)
+- **Store Management**: Configure store details, slugs, and custom domains.
+- **Product Catalog**: Full CRUD for products with Google Drive-backed image storage.
+- **Order Processing**: Real-time order tracking and management.
+- **Inventory Control**: Automated stock level tracking.
 
-- Multi-tenant data isolation via `tenant_id` + scoped queries
-- Tenant detection by subdomain and path (`/store/{slug}`)
-- JWT auth with session scopes:
-  - `scope=platform` for super admins
-  - `scope=tenant` for tenant admins/customers
-- Role model: `SUPER_ADMIN`, `ADMIN`, `CUSTOMER`
+### 🛒 Customer Storefront
+- **Dynamic Routing**: Automatic store detection via subdomains or route slugs (`/store/[slug]`).
+- **Product Discovery**: Premium storefront UI with responsive search and filtering.
+- **Seamless Cart**: Client-side cart persistence with server-side synchronization.
+- **Secure Payments**: Integrated Razorpay checkout with webhook verification.
 
-## Super Admin Features (v1 Core Ops)
+---
 
-- Dedicated login: `/super-admin/login`
-- Platform metrics (tenants, orders, GMV, user counts)
-- Tenant management:
-  - list/search tenants
-  - suspend/activate store
-- Tenant support snapshot:
-  - recent orders
-  - top products
-  - failed payments
-- Impersonation workflow:
-  - start temporary tenant-admin impersonation (reason required)
-  - stop impersonation and return to platform scope
-- Audit feed with actor/effective-user metadata
+## 🛠️ Tech Stack
 
-## Key API Routes
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (SQLite for local development)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Authentication**: JWT-based session management with scoped payloads.
+- **Storage**: [Google Drive API](https://developers.google.com/drive) (Service Account integration for product images).
+- **Payments**: [Razorpay](https://razorpay.com/)
+- **Email**: [Nodemailer](https://nodemailer.com/)
 
-### Tenant APIs
-- `/api/auth/*`
-- `/api/products/*`
-- `/api/cart/*`
-- `/api/orders/*`
-- `/api/payments/*`
+---
 
-### Super Admin APIs
-- `/api/super-admin/auth/login`
-- `/api/super-admin/auth/logout`
-- `/api/super-admin/auth/me`
-- `/api/super-admin/tenants`
-- `/api/super-admin/tenants/:id/suspend`
-- `/api/super-admin/tenants/:id/activate`
-- `/api/super-admin/tenants/:id/snapshot`
-- `/api/super-admin/audit`
-- `/api/super-admin/impersonation/start`
-- `/api/super-admin/impersonation/stop`
+## 📁 Project Structure
 
-## Prisma Models
+```text
+/app
+  /prisma               # Database schema and migrations
+  /public               # Static assets
+  /src
+    /app                # Next.js App Router routes
+      /api              # Scoped API routes (Super Admin, Frontend, Uploads)
+      /super-admin      # Platform owner portal
+      /dashboard        # Shopkeeper admin portal
+      /store            # Dynamic customer storefronts
+    /components
+      /ui               # Reusable atomic UI components (Indigo Ethereal)
+      /cart             # Cart logic and UI
+      /layout           # Common layout wrappers
+    /lib
+      /auth             # JWT, Session, and Lockout logic
+      /tenant           # Tenant detection and isolation logic
+      /payments         # Razorpay integration
+      /gdrive           # Google Drive storage service
+      /api              # API response helpers and shared validators
+    /types              # Shared TypeScript definitions
+    /middleware.ts      # Multi-tenant routing and security middleware
+```
 
-- `Tenant` (with `status`, suspension fields)
-- `PlatformAdmin`
-- `User`
-- `Product`
-- `Order`
-- `OrderItem`
-- `Cart`
-- `Payment`
-- `AuditLog`
-- `ImpersonationSession`
+---
 
-Schema: `prisma/schema.prisma`
+## ⚙️ Local Setup
 
-## Security Controls
+### 1. Prerequisites
+- Node.js 20+
+- A Google Cloud Project (for Google Drive storage)
+- A Razorpay Account (for testing payments)
 
-- Zod validation for all APIs
-- Rate limiting in middleware
-- Scope + role checks per route
-- Cross-tenant access prevention
-- Suspended tenant blocking (`423`)
-- Audit logs for privileged operations
-- Login lockout/backoff for super admin auth
+### 2. Environment Configuration
+Copy `.env.example` to `.env.local` and fill in your credentials:
 
-## Seeding Super Admin Accounts
+```bash
+cp .env.example .env.local
+```
 
-Set `SUPER_ADMIN_SEED_JSON` in env as JSON array, then run:
+### 3. Installation
+```bash
+npm install
+```
 
+### 4. Database Setup
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+### 5. Seeding Super Admins
+Define your initial super admin users in `SUPER_ADMIN_SEED_JSON` (env) as a JSON array, then run:
 ```bash
 npm run prisma:seed
 ```
 
-## Setup
-
+### 6. Start Development
 ```bash
-npm install
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
 npm run dev
 ```
 
-## Deploy (Vercel)
+---
 
-1. Configure all env vars (including `DATABASE_URL`, `JWT_SECRET`, Razorpay keys)
-2. Run migrations in deploy pipeline: `npm run prisma:deploy`
-3. Build: `npm run build`
+## 🔒 Security & Architecture
+
+- **Tenant Isolation**: Every query is scoped via a `tenant_id` check enforced at the data layer and middleware.
+- **Scoped JWTs**:
+  - `scope: platform` - Access to super-admin functionality.
+  - `scope: tenant` - Access to specific store resources.
+- **Sensitive Operations**: Impersonation and platform-level changes are captured in `AuditLog` with IP and User Agent tracking.
+- **Input Validation**: Strict schema enforcement using [Zod](https://zod.dev/) for all API interactions.
+
+---
+
+## 🔌 Core Functions
+
+### Image Uploads (`src/lib/gdrive.ts`)
+The system uses a Google Service Account to upload files directly to a designated Drive folder, returning a publicly accessible proxy URL.
+
+### Tenant Tracking (`src/lib/tenant/`)
+Middleware detects tenants based on:
+1. Custom Domain (e.g., `shop.customer.com`)
+2. Subdomain (e.g., `nike.storebase.dev`)
+3. Path Prefix (e.g., `localhost:3000/store/nike`)
+
+### Payment Verification (`src/app/api/webhooks/razorpay/route.ts`)
+Securely handles Razorpay payment signatures to update order statuses asynchronously.
+
+---
+
+## 🚀 Deployment
+
+1. **GCP Cloud Run**: Recommended for high scalability. Use the provided `Dockerfile` and `deploy.ps1`.
+2. **Vercel**: Optimized for Next.js features. Ensure `DATABASE_URL` is set to a production PostgreSQL instance.
+3. **Database Migrations**: Always run `npx prisma migrate deploy` in your CI/CD pipeline.
+
