@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadToDrive } from "@/lib/gdrive";
+import { adminStorage } from "@/lib/firebase/admin";
+import { getDownloadURL } from "firebase-admin/storage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,8 +18,20 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to Google Drive
-    const imageUrl = await uploadToDrive(buffer, file.name, file.type);
+    // Upload to Firebase Storage
+    const bucket = adminStorage.bucket();
+    const fileName = `products/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`;
+    const fileRef = bucket.file(fileName);
+
+    await fileRef.save(buffer, {
+      metadata: {
+        contentType: file.type,
+      },
+      resumable: false,
+    });
+
+    // Generate a long-lived download URL compatible with Firebase Storage
+    const imageUrl = await getDownloadURL(fileRef);
 
     return NextResponse.json({
       success: true,
