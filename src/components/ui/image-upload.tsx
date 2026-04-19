@@ -84,7 +84,7 @@ export function ImageUpload({ value, onChange, label = "Product Image" }: ImageU
           {isUploading ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
-              <p className="text-xs font-medium text-[var(--on-surface-variant)]">Uploading to Google Drive...</p>
+              <p className="text-xs font-medium text-[var(--on-surface-variant)]">Uploading image...</p>
             </div>
           ) : (
             <>
